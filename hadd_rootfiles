@@ -1,0 +1,11 @@
+#! /bin/csh
+
+cd $2
+
+hadd $1 `xrdfsls -u $2 | grep \.root`
+
+#  but ...
+#  $ ls -1 <pwd of dir>/* | grep .root
+#  also works?
+
+hadd summed_file.root `ls -1 /full/path/* | grep <pattern>`

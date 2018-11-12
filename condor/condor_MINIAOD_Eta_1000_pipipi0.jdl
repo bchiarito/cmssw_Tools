@@ -1,0 +1,12 @@
+universe = vanilla
++AccountingGroup = group_rutgers.chiarito
+Executable = shscript_MiniAOD.sh
+should_transfer_files = YES
+when_to_transfer_output = ON_EXIT
+transfer_input_files = 
+Output = /cms/data24/chiarito/diphoton_gen/CMSSW_7_6_3/src/condor_logs/Eta_1000_pipipi0/clu_$(CLUSTER)_pro_$(PROCESS)_stdout.log
+Error = /cms/data24/chiarito/diphoton_gen/CMSSW_7_6_3/src/condor_logs/Eta_1000_pipipi0/clu_$(CLUSTER)_pro_$(PROCESS)_stderr.log
+Log = /cms/data24/chiarito/diphoton_gen/CMSSW_7_6_3/src/condor_logs/Eta_1000_pipipi0/clu_$(CLUSTER)_pro_$(PROCESS)_condor.log
+x509userproxy = /home/chiarito/proxy/x509up_u756
+Arguments = Eta_1000_pipipi0 Eta_1000_pipipi0
+Queue 1
