@@ -1,4 +1,5 @@
 #! /bin/sh
+# source this.sh DIR_NAME
 mkdir $1
 cd $1
 export SCRAM_ARCH=slc7_amd64_gcc700
