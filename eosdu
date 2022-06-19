@@ -1,0 +1,131 @@
+#!/bin/bash -e
+#
+#  eosdu
+#
+#  Created by Jesus Orduna and Kevin Pedro
+#
+
+case `uname` in
+	Linux) ECHO="echo -e" ;;
+	*) ECHO="echo" ;;
+esac
+
+# awk command to fix stupid citrine find command
+FIXFIND='{lfn=$1; while(substr(lfn,1,6)!="/store"&&length(lfn)>=6) { lfn = substr(lfn,2) }; print lfn}'
+
+# This will sum the size of all content inside the LFN and return the number in B
+# or an empty string for empty directories
+getSizeOf() {
+	DIR=$1
+	SERVER=$2
+	MATCH=$3
+	# default case
+	if [ -z "$MATCH" ]; then
+		eos $SERVER find -d $DIR | awk "$FIXFIND" | xargs -I ARG -d '\n' -n1 -P4 bash -c 'awk "$0" <(eos $2 ls -l $1)' '{sum+=$5} END {print sum}' ARG $SERVER | awk '{sum+=$0} END {print sum}'
+	# matching case
+	else
+		eos $SERVER ls -l $DIR | grep "$MATCH" | awk '{sum+=$5} END {print sum}'
+	fi
+}
+
+# This does the same, but counts number of files
+getFilesOf() {
+	DIR=$1
+	SERVER=$2
+	MATCH=$3
+	# default case
+	if [ -z "$MATCH" ]; then
+		eos $SERVER find -d $DIR | awk "$FIXFIND" | xargs -d '\n' -n1 -P4 eos $SERVER ls | wc -l | awk '{sum+=$0} END {print sum}'
+	# matching case
+	else
+		eos $SERVER ls $DIR | grep "$MATCH" | wc -l
+	fi
+}
+
+printSizeOf() {
+	DIR=$1
+	SERVER=$2
+	MATCH=$3
+
+	# Get the size of the LFN
+	if [ -z "$FILES" ]; then
+		theSize=$(getSizeOf $DIR $SERVER $MATCH)
+	else
+		theSize=$(getFilesOf $DIR $SERVER $MATCH)
+	fi
+
+	# Empty directories will evaluate true
+	if [ "a$theSize" = "a" ] ; then
+		$ECHO "Empty"
+	else
+		# Non-empty directories with content adding zero-size will evaluate true
+		# need to be filtered as log($theSize) will complain
+		if [ "$theSize" -eq "0" ] ; then
+			$ECHO "0 B"
+		elif [ -z "$HUMAN" ]; then
+			$ECHO ${theSize}
+		else
+			# Compute an index to refer to B, kB, MB, GB, TB, PB, EB, ZB, YB
+			declare -a thePrefix=( [0]="" [1]="K"  [2]="M" [3]="G" [4]="T" [5]="P" [6]="E" [7]="Z" [8]="Y")
+			
+			#decimal for size or files
+			theIndex=$(awk "BEGIN {print int(log($theSize)/(3*log(10)))}")
+			$ECHO "$theSize $theIndex ${thePrefix[$theIndex]}" | awk '{print $1/(10^(3*$2))$3}'
+		 fi
+	fi
+}
+
+usage() {
+	$ECHO "eosdu [options] <LFN>"
+	$ECHO
+	$ECHO "Options:"
+	$ECHO "-s        \txrootd server name (default = root://cmseos.fnal.gov)"
+	$ECHO "-f        \tcount number of files instead of disk usage"
+    $ECHO "-g        \tsearch for files matching specified string within directory"
+	$ECHO "-h        \tprint human readable sizes"
+	$ECHO "-r        \trun eosdu for each file/directory in <LFN>"
+	$ECHO "        \t('recursive'/'wildcard' option, like 'du *')"
+	exit 1
+}
+
+HUMAN=""
+FILES=""
+RECURSE=""
+SERVER=root://cmseos.fnal.gov
+MATCH=""
+
+#check arguments
+while getopts "fhrs:g:" opt; do
+	case "$opt" in
+	f) FILES=yes
+	;;
+	h) HUMAN=yes
+	;;
+	r) RECURSE=yes
+	;;
+	s) SERVER=$OPTARG
+	;;
+	g) MATCH=$OPTARG
+	;;
+	esac
+done
+
+shift $(($OPTIND - 1))
+DIR=$1
+
+if [ "$DIR" == "" ]; then
+  usage
+fi
+
+#"recursive" option
+if [[ -n "$RECURSE" ]]; then
+	for i in $(eos $SERVER find -d --maxdepth 1 $DIR | awk "$FIXFIND"); do
+		if [[ "$i" == *"$DIR" || "$i" == *"$DIR"/ ]]; then
+			continue
+		fi
+		theSize=$(printSizeOf $i $SERVER $MATCH)
+		$ECHO "`basename $i` $theSize"
+	done
+else
+	printSizeOf $DIR $SERVER $MATCH
+fi
