@@ -1,0 +1,3 @@
+#! /bin/sh
+
+hadd summed.root `ls -1 $1/* | grep .root`
