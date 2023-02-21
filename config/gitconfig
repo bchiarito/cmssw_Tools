@@ -1,15 +1,16 @@
 [user]
-	name = placeholder placeholder
-	email = placeholder@mail.com
-	github = placeholder
+	name = Brandon Chiarito
+	email = bchiarito@gmail.com
+	github = bchiarito
 [core]
 	editor = vim
 [color]
 	ui = auto
 [alias]
-	history = log --all --oneline --graph --decorate --stat
+	historyOld = log --all --oneline --graph --decorate --stat
+  history = log --graph --date=short --pretty=format:"'%C(yellow)%h%Cred%d%Creset %s%n %Cgreen(%cd) %C(bold blue)<%an>%Creset%n'" --all
+  hist = log --graph --date=short --pretty=format:"'%C(yellow)%h %C(bold blue)%an%Creset %Cgreen%ad%Cred%d%Creset %s'" --all
 	unstage = reset HEAD --
-  hist = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an,%ae>%Creset%n' --abbrev-commit --date=relative --branches
 [push]
 	default = current
   followTags = true
