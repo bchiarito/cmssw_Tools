@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from ROOT import *
 import sys
 import os
@@ -30,4 +30,4 @@ f = TFile(fi)
 tree = f.Get(args.tree)
 names = [b.GetName() for b in tree.GetListOfBranches()]
 for name in names:
-  if args.string in name: print name
+  if args.string in name: print(name)
