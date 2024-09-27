@@ -2,7 +2,7 @@
 
 if [ $# -eq 1 ]
   then
-    hadd summed.root `ls -1 $1/* | grep .root`
+    hadd -f summed.root `ls -1 $1/* | grep .root`
 fi
 if [ $# -eq 2 ]
   then
